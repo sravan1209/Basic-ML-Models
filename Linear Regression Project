@@ -1,0 +1,71 @@
+library(ggplot2)
+######loading data#######
+df <- read.csv('bikeshare.csv')
+head(df)
+
+#########EDA#############
+#count vs temp#####
+ggplot(df,aes(temp,count))+geom_point(aes(color=temp),alpha=0.3)
+
+##data time vs count#######
+
+df$datetime <- as.POSIXct(df$datetime)
+
+ggplot(df,aes(datetime,count))+geom_point(aes(color=temp),alpha=0.3)+
+  scale_color_continuous(low = 'green',high = 'red')
+####count is less for winter and high for summer#######
+
+## correlation######
+
+library(corrplot)
+cor(df[,c('temp','count')])
+
+######exploring season data#######
+
+##Box plot#####
+
+ggplot(df,aes(x=factor(season),y=count))+geom_boxplot(aes(color=factor(season)))
+
+head(df$datetime)
+format(df$datetime[4],'%H')
+
+######Feature Engineering######
+####taking only hour data from time#####
+
+to_hour <- function(x){
+  
+    d <- format(x,'%H')
+    return(d)
+  
+}
+
+df$hour <- sapply(df$datetime,to_hour)
+head(df$hour)
+##### scatter plot of count vs hour colored by temp#######
+## hour for working days##
+ggplot(df[df$workingday==1,],aes(hour,count))+geom_point(aes(color=temp),alpha=0.4,position = position_jitter())+
+  scale_color_gradientn(colors=c('yellow','blue','red','green'))
+##head(df[df$workingday==1,])
+
+##hour for non working days###
+
+ggplot(df[df$workingday==0,],aes(hour,count))+ geom_point(aes(color=temp),alpha=0.4)+
+  scale_color_gradientn(colors = c('blue','green','yellow','red'))
+
+#####linear regression#######
+
+temp.model <- lm(count~temp,data = df)
+print(linear.model)
+summary(linear.model)
+
+#####how many bike rentals at 25 degrees
+
+temp.test <- data.frame(temp=c(25))
+temp.test
+
+predict(temp.model,temp.test)
+
+######model########
+
+linear.model <- lm(count~. -casual -registered -datetime -atemp,df)
+summary(linear.model)

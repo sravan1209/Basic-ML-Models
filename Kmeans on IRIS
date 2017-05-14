@@ -1,0 +1,20 @@
+library(ISLR)
+library(ggplot2)
+head(iris)
+
+#######checking to validate clustering
+ggplot(iris,aes(Petal.Length,Petal.Width,color=Species))+ geom_point(size=4)
+
+#######Kmeans########
+set.seed(101)
+
+irisCluster <- kmeans(iris[,1:4],3,nstart = 20)
+print(irisCluster)
+
+#########evaluating cluster ##########
+table(irisCluster$cluster,iris$Species)
+
+###cluster visualization########
+
+library(cluster)
+clusplot(iris,irisCluster$cluster,color = T,shade = T,labels = 0,lines = 0)

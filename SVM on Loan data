@@ -1,0 +1,47 @@
+library(ggplot2)
+####### loading data#######
+df <- read.csv('loan_data.csv')
+summary(df)
+str(df)
+
+### convert num categorical variables to factors#######
+df$inq.last.6mths <- as.factor(df$inq.last.6mths)
+df$delinq.2yrs <- as.factor(df$delinq.2yrs)
+df$pub.rec <- as.factor(df$pub.rec)
+df$not.fully.paid <- as.factor(df$not.fully.paid)
+df$credit.policy <- as.factor(df$credit.policy)
+
+str(df)
+
+######## EDA##########
+
+ggplot(df,aes(fico),fill='yellow')+geom_histogram(aes(fill=(not.fully.paid)),color='black')
+str(df$not.fully.paid)
+
+ggplot(df,aes(purpose))+geom_bar(aes(fill=not.fully.paid),color='black',position = 'dodge')
+
+ggplot(df,aes(fico,int.rate))+geom_point(color='red',alpha=0.1)
+######as the fico score increases, the interest rate is less## trend###
+
+
+
+########data partition#########
+library(caTools)
+sample <- sample.split(df$not.fully.paid,SplitRatio = 0.7)
+train.data <- subset(df,sample == T)
+test.data <- subset(df,sample==F)
+
+###########SVM##################
+library(e1071)
+model <- svm(not.fully.paid~.,train.data)
+summary(model)
+
+predict.model <- predict(model,test.data)
+
+table(predict.model,test.data$not.fully.paid)
+
+######tuning the model############
+
+tune.model <- tune(svm,not.fully.paid~.,data=train.data,kernel='radial',ranges = 
+                     list(cost=c(1,0.5,2.5),gamma=c(0.5,0.1,0.7)))
+

@@ -1,0 +1,72 @@
+#using KNN on Caravan data from ISLR package
+library(ISLR)
+str(Caravan) # lots of features, Purchase is the predictor class
+df<- Caravan
+summary(Caravan$Purchase) # about 348 people bought the insurance
+## checking for NA  
+any(is.na(df)) # no Na values
+
+# scales of the variables matter as we are measuring distance
+var(df[,1])
+var(df[,2])
+#varaiances are different, so have to change them
+
+#storing purchase class in a different variable
+purchase <- df$Purchase
+## standardizing dataset using scale function
+
+standardized.df <- scale(df[,-86])
+print(var(standardized.df[,1]))
+print(var(standardized.df[,2]))
+#looks like we standardized
+
+#splitting data
+test.index <- 1:1000
+test.data <- standardized.df[test.index,]
+test.purchase <- purchase[test.index]
+
+# train
+train.data <- standardized.df[-test.index,]
+train.purchase <- purchase[-test.index]
+
+###########
+####################
+##########KNN MODEL#########
+library(class)
+set.seed(101)
+predicted.purchase <- knn(train.data,test.data,train.purchase,k=1)
+head(predicted.purchase)
+
+#########
+###EValuating Model#######
+#############
+misclass.error <- mean(test.purchase != predicted.purchase)
+print(misclass.error)
+
+#############
+#######Choosing K Value#########
+############
+predicted.purchase <- knn(train.data,test.data,train.purchase,k=5)
+misclass.error <- mean(test.purchase != predicted.purchase)
+print(misclass.error)
+########## 
+predicted.purchase <- NULL
+error.rate <- NULL
+
+for (i in 1:20){
+  set.seed(101)
+  predicted.purchase <- knn(train.data,test.data,train.purchase,k=i)
+  error.rate[i] == mean(test.purchase != predicted.purchase)
+  }
+print(error.rate)
+
+######### Visualize K Elbow Method###########
+
+library(ggplot2)
+
+k.values <- 1:20
+error.df <- data.frame(error.rate,k.values)
+
+ggplot(error.df,aes(k.values,error.rate))+ geom_point()+ geom_line(lty='dotted',color = 'red')
+
+### k = 9 looks good #########

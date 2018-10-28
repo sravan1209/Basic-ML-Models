@@ -1,0 +1,22 @@
+library(rpart)
+
+str(kyphosis)
+head(kyphosis)
+any(is.na(kyphosis))
+
+tree <- rpart(Kyphosis~., method = 'class',data = kyphosis)
+printcp(tree)
+plot(tree,uniform = TRUE,main = "kyphosis Tree")
+text(tree,use.n = TRUE,all = T)
+print(tree)
+
+library(rpart.plot)
+prp(tree)
+
+####### random Forest##########
+
+library(randomForest)
+ forest <- randomForest(Kyphosis~.,method = 'class',data = kyphosis)
+ plot(forest)
+ print(forest)
+ 

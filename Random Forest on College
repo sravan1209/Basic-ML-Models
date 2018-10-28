@@ -1,0 +1,64 @@
+library(ISLR)
+library(ggplot2)
+head(College)
+df <- College
+
+### scatter plot of grad rate vs room board######
+
+ggplot(df,aes(Grad.Rate,Room.Board)) + geom_point(aes(col=Private))
+
+##histogram of full time undergrad coloured by private######
+ggplot(df,aes(F.Undergrad))+ geom_histogram(aes(fill=Private),color = 'black',bins = 30)
+
+###histogram of grad rate colored by private#####
+ggplot(df,aes(Grad.Rate))+geom_histogram(aes(fill=Private),color='black')
+
+#### replacing the graduation rate of >100 with 100#####
+df$Grad.Rate[df$Grad.Rate>100] <- 100
+
+library(caTools)
+set.seed(101)
+sample <- sample.split(df$Private,SplitRatio = 0.7)
+train.data <- subset(df,sample == T)
+test.data <- subset(df,sample==F)
+
+#############
+
+tree <- rpart(Private ~.,train.data,method = 'class')
+predict.private <- predict(tree,test.data)
+predict.private[1]
+d<- length(predict.private)
+d
+new <- NULL
+for (i in 1:233){
+  if(predict.private[i]>=0.5) {
+    new[i] <- 'No'
+  } else{
+    new[i] <- 'Yes'
+  }
+}
+
+###### building confusion matrix#######
+table(new,test.data$Private)
+
+###### using rpart.plot to plot the tree#######
+
+rpart.plot(tree)
+prp(tree)
+
+###### building random Forest#########
+
+rf.model <- randomForest(Private~.,train.data,method='class',importance = T)
+
+### confusion matrix on train data########
+rf.model$confusion
+
+#### feature importance########
+rf.model$importance
+
+##### prediction######
+
+predict.rf <- predict(rf.model,test.data,type = 'response')
+
+###### confusion matrix of test data########
+table(predict.rf,test.data$Private)

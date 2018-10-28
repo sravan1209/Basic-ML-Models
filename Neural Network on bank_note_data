@@ -1,0 +1,46 @@
+library(MASS)
+
+head(Boston)
+any(is.na(Boston))
+
+df <- Boston
+### its good to normalize data for neural networks#######
+####scaling using min max#####
+maxs <- apply(df,2,max)
+maxs
+
+mins <- apply(df,2,min)
+mins
+
+scaled.data <- scale(df,center = mins,scale = maxs-mins)
+scaled.data <- as.data.frame(scaled.data)
+head(scaled.data)
+
+#######
+#######data partition#######
+library(caTools)
+sample <- sample.split(df$medv,SplitRatio = 0.7)
+
+train.data <- subset(df,sample==T)
+test.data <- subset(df,sample==F)
+
+#######neural networks########
+library(neuralnet)
+n <- names(train.data)
+head(train.data)
+nn <- neuralnet(medv ~ crim+zn+indus+chas+nox+rm+age+dis+rad+tax+ptratio+black+
+                  lstat,data = train.data,hidden = c(5,3),linear.output = T)
+plot(nn)
+
+
+predictedMdv <- compute(nn,test.data[1:13])
+str(predictedMdv)
+
+#undoing normalization#####
+
+true.predictions <- predictedMdv$net.result*(max(df$medv)-min(df$medv))+min(df$medv)
+
+test.r <- (test.data$medv)*(max(df$medv)-min(df$medv))+min(df$medv)
+
+mse.nn <- sum((test.r- true.predictions)^2)/nrow(test.data)
+mse.nn
